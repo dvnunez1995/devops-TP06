@@ -69,8 +69,7 @@ def get_notes():
 def create_note():
     data = request.get_json()
 
-    # Validar que exista el título
-    if not data or "title" not in data:
+       if not data or "title" not in data:
         return jsonify({"error": "title is required"}), 400
 
     conn = get_conn()
