@@ -67,6 +67,10 @@ def get_notes():
 @app.route("/api/notes", methods=["POST"])
 def create_note():
     data = request.get_json()
+
+    if not data or "title" not in data:
+        return jsonify({"error": "title is required"}), 400
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
@@ -77,7 +81,8 @@ def create_note():
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify({"id": note_id, "message": "nota creada"}), 201
+
+    return jsonify({"id": note_id}), 201
 
 
 @app.route("/api/notes/<int:note_id>", methods=["DELETE"])
