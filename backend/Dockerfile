@@ -19,6 +19,7 @@ COPY --from=builder /install /usr/local
 
 # Copiar el código
 COPY app.py .
+COPY tests ./tests
 
 # Script de inicio que espera a que Postgres esté listo
 COPY entrypoint.sh .
