@@ -42,6 +42,7 @@ def health():
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {e}"
+
     return jsonify({
         "status": "ok",
         "db": db_status,
@@ -51,42 +52,52 @@ def health():
 
 @app.route("/api/notes", methods=["GET"])
 def get_notes():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, title, content, created_at FROM notes ORDER BY created_at DESC")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify([
-        {"id": r[0], "title": r[1], "content": r[2], "created_at": str(r[3])}
-        for r in rows
-    ])
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, title, content, created_at "
+            "FROM notes ORDER BY created_at DESC"
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
 
+        return jsonify([
+            {
+                "id": r[0],
+                "title": r[1],
+                "content": r[2],
+                "created_at": str(r[3])
+            }
+            for r in rows
+        ])
+    except Exception:
+        return jsonify([])
 
 
 @app.route("/api/notes", methods=["POST"])
 def create_note():
     data = request.get_json()
 
-       if not data or "title" not in data:
-        return jsonify({"error": "title is required"}), 400
+    if not data or "title" not in data:
+        return jsonify({"error": "title es obligatorio"}), 400
 
     conn = get_conn()
     cur = conn.cursor()
-
     cur.execute(
         "INSERT INTO notes (title, content) VALUES (%s, %s) RETURNING id",
         (data["title"], data.get("content", ""))
     )
-
     note_id = cur.fetchone()[0]
     conn.commit()
-
     cur.close()
     conn.close()
 
-    return jsonify({"id": note_id}), 201
+    return jsonify({
+        "id": note_id,
+        "message": "nota creada"
+    }), 201
 
 
 @app.route("/api/notes/<int:note_id>", methods=["DELETE"])
@@ -97,6 +108,7 @@ def delete_note(note_id):
     conn.commit()
     cur.close()
     conn.close()
+
     return jsonify({"message": "nota eliminada"})
 
 
